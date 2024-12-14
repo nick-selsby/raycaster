@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <cmath>
 #include <vector>
+#include <algorithm>
 #include <iostream>
 
 const int MAP_WIDTH = 20;
@@ -168,11 +169,25 @@ void cast_ray(SDL_Renderer* renderer, const Player& player, int x) {
         SDL_SetRenderDrawColor(renderer, 25, 25, 112, 255);
         SDL_RenderDrawLine(renderer, x, draw_end, x, SCREEN_HEIGHT - 1);
 
+        float r = side == 1 ? 1.0f : 0.0f;
+        float g = side == 1 ? 0.0f : 1.0f;
+        float b = 0;
+
+        float brightness = 1.0f;
+
+        float min_dist = 0.0f;
+        float max_dist = 30.0f;
+        float dist_b = (perp_wall_dist - min_dist) / (max_dist - min_dist);
+        dist_b = 1.0f - std::sqrt(std::clamp(dist_b, 0.0f, 1.0f));
+        brightness *= dist_b;
+
+        r *= brightness; g *= brightness; b *= brightness;
+
         // draw walls
         SDL_SetRenderDrawColor(renderer, 
-            side == 1 ? 255 : 0,        // r
-            side == 1 ? 0 : 255,        // g
-            0,                          // b
+            uint8_t(r * 255.0f),        // r
+            uint8_t(g * 255.0f),        // g
+            uint8_t(b * 255.0f),        // b
             255);                       // a
 
         SDL_RenderDrawLine(renderer, x, draw_start, x, draw_end);
