@@ -1,6 +1,6 @@
 # compiler settings
 CXX = g++
-CXXFLAGS = -Wall -std=c++11 $(shell sdl2-config --cflags)
+CXXFLAGS = -Wall -std=c++17 $(shell sdl2-config --cflags)
 LDFLAGS = $(shell sdl2-config --libs)
 
 # source files
