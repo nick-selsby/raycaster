@@ -135,12 +135,16 @@ public:
             int draw_end = line_height / 2 + SCREEN_HEIGHT / 2;
             if(draw_end >= SCREEN_HEIGHT) draw_end = SCREEN_HEIGHT - 1;
 
+            // ceiling and floor colours
+            int ceiling_r = 100; int ceiling_g = 149; int ceiling_b = 237; 
+            int floor_r = 25; int floor_g = 25; int floor_b = 112; 
+
             // draw ceiling
-            SDL_SetRenderDrawColor(renderer, 100, 149, 237, 255);
+            SDL_SetRenderDrawColor(renderer, ceiling_r, ceiling_g, ceiling_b, 255);
             SDL_RenderDrawLine(renderer, x, 0, x, draw_start);
             
             // draw floor
-            SDL_SetRenderDrawColor(renderer, 25, 25, 112, 255);
+            SDL_SetRenderDrawColor(renderer, floor_r, floor_g, floor_b, 255);
             SDL_RenderDrawLine(renderer, x, draw_end, x, SCREEN_HEIGHT - 1);
 
             float r = side == 1 ? 1.0f : 0.0f;
@@ -225,11 +229,10 @@ int main(int argc, char* argv[]) {
         Uint64 current_time = SDL_GetTicks64();
         double frame_time = (current_time - last_time) / 1000.0;
         last_time = current_time;
-
+        
+        const Uint8* keys = SDL_GetKeyboardState(NULL);
         double move_speed = frame_time * 5.0;
         double rot_speed = frame_time * 3.0;
-
-        const Uint8* keys = SDL_GetKeyboardState(NULL);
         player.handle_input(keys, move_speed, rot_speed);
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
