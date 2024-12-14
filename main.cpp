@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <cmath>
 #include <vector>
+#include <iostream>
 
 const int MAP_WIDTH = 20;
 const int MAP_HEIGHT = 20;
@@ -187,7 +188,7 @@ int main(int argc, char* argv[]) {
     }
 
     Player player = {1.5, 1.5, 1.0, 0.0, 0.0, 0.66};
-    Uint32 last_time = SDL_GetTicks();
+    Uint64 last_time = SDL_GetTicks();
 
     const int FPS = 60;
     const int FRAME_DELAY = 1000 / FPS;
@@ -195,15 +196,13 @@ int main(int argc, char* argv[]) {
     bool running = true;
     SDL_Event event;
     while (running) {
-        Uint32 frame_start = SDL_GetTicks();
-
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = false;
             }        
         }
 
-        Uint32 current_time = SDL_GetTicks();
+        Uint64 current_time = SDL_GetTicks64();
         double frame_time = (current_time - last_time) / 1000.0;
         last_time = current_time;
 
@@ -222,9 +221,10 @@ int main(int argc, char* argv[]) {
 
         SDL_RenderPresent(renderer);
 
-        // frame delay for constant framerate
-        int frame_time_ms = SDL_GetTicks() - frame_start;
-        if (FRAME_DELAY > frame_time_ms) {
+        // limit framerate
+        Uint64 frame_time_ms = SDL_GetTicks64() - current_time;
+        if (frame_time_ms < FRAME_DELAY) {
+            //std::cout << frame_time_ms << "|" << FRAME_DELAY << std::endl;
             SDL_Delay(FRAME_DELAY - frame_time_ms);
         }
     }
