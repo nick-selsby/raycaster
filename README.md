@@ -1,5 +1,5 @@
 This project requires the following 
 dependencies:
 ```bash
-sudo apt install libsdl2-dev
+sudo apt install build-essential libsdl2-dev
 ```
