@@ -72,7 +72,7 @@ public:
         }
     }
 
-    void cast_ray(SDL_Renderer* renderer, int &x) const {
+    void cast_ray(SDL_Renderer* renderer, int x) const {
         double camera_x = 2 * x / double(SCREEN_WIDTH) - 1;
         double ray_dir_x = dir_x + plane_x * camera_x;
         double ray_dir_y = dir_y + plane_y * camera_x;
