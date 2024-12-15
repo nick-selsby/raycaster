@@ -72,7 +72,7 @@ public:
         }
     }
 
-    void cast_ray(SDL_Renderer* renderer, int x) const {
+    void cast_ray(SDL_Renderer* renderer, int &x) const {
         double camera_x = 2 * x / double(SCREEN_WIDTH) - 1;
         double ray_dir_x = dir_x + plane_x * camera_x;
         double ray_dir_y = dir_y + plane_y * camera_x;
@@ -135,18 +135,6 @@ public:
             int draw_end = line_height / 2 + SCREEN_HEIGHT / 2;
             if(draw_end >= SCREEN_HEIGHT) draw_end = SCREEN_HEIGHT - 1;
 
-            // ceiling and floor colours
-            int ceiling_r = 100; int ceiling_g = 149; int ceiling_b = 237; 
-            int floor_r = 25; int floor_g = 25; int floor_b = 112; 
-
-            // draw ceiling
-            SDL_SetRenderDrawColor(renderer, ceiling_r, ceiling_g, ceiling_b, 255);
-            SDL_RenderDrawLine(renderer, x, 0, x, draw_start);
-            
-            // draw floor
-            SDL_SetRenderDrawColor(renderer, floor_r, floor_g, floor_b, 255);
-            SDL_RenderDrawLine(renderer, x, draw_end, x, SCREEN_HEIGHT - 1);
-
             float r = side == 1 ? 1.0f : 0.0f;
             float g = side == 1 ? 0.0f : 1.0f;
             float b = 0;
@@ -173,6 +161,20 @@ public:
     }
     
 };
+
+
+void draw_ceiling_and_floor(SDL_Renderer* renderer) {
+    // ceiling
+    SDL_SetRenderDrawColor(renderer, 100, 100, 255, 255);
+    SDL_Rect ceilingRect = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT / 2};
+    SDL_RenderFillRect(renderer, &ceilingRect);
+
+    // floor
+    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+    SDL_Rect floorRect = {0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2};
+    SDL_RenderFillRect(renderer, &floorRect);
+}
+
 
 bool init(SDL_Window** window, SDL_Renderer** renderer) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -238,6 +240,7 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
+        draw_ceiling_and_floor(renderer);
         for(int x = 0; x < SCREEN_WIDTH; x++) {
             player.cast_ray(renderer, x);
         }
