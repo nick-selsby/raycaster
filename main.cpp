@@ -164,15 +164,25 @@ public:
 
 
 void draw_ceiling_and_floor(SDL_Renderer* renderer) {
-    // ceiling
-    SDL_SetRenderDrawColor(renderer, 100, 100, 255, 255);
-    SDL_Rect ceilingRect = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT / 2};
-    SDL_RenderFillRect(renderer, &ceilingRect);
+    // draw ceiling with gradient
+    for (int y = 0; y < SCREEN_HEIGHT / 2; ++y) {
+        float t = float(y) / (SCREEN_HEIGHT / 2);
+        uint8_t r = uint8_t(100 * (1 - t));
+        uint8_t g = uint8_t(100 * (1 - t));
+        uint8_t b = uint8_t(255 * (1 - t));
+        SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+        SDL_RenderDrawLine(renderer, 0, y, SCREEN_WIDTH, y);
+    }
 
-    // floor
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-    SDL_Rect floorRect = {0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2};
-    SDL_RenderFillRect(renderer, &floorRect);
+    // draw floor with gradient
+    for (int y = SCREEN_HEIGHT / 2; y < SCREEN_HEIGHT; ++y) {
+        float t = float(y - SCREEN_HEIGHT / 2) / (SCREEN_HEIGHT / 2);
+        uint8_t r = uint8_t(0 * - t);
+        uint8_t g = uint8_t(0 * - t);
+        uint8_t b = uint8_t(255 * t);
+        SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+        SDL_RenderDrawLine(renderer, 0, y, SCREEN_WIDTH, y);
+    }
 }
 
 
