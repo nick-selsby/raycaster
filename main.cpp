@@ -81,12 +81,13 @@ public:
         double camera_x = 2 * x / double(SCREEN_WIDTH) - 1;
         double ray_dir_x = dir_x + plane_x * camera_x;
         double ray_dir_y = dir_y + plane_y * camera_x;
-        
+        float ray_dir_length = std::sqrt(ray_dir_x * ray_dir_x + ray_dir_y * ray_dir_y);
+
         RayCastResult result;
         map.cast(Vector2(pos_y, pos_x), Vector2(-ray_dir_y, -ray_dir_x), result);
 
         if (result.hit == true) {
-            double perp_wall_dist = result.distance;
+            double perp_wall_dist = result.distance / ray_dir_length;
 
             int line_height = (int)(SCREEN_HEIGHT / perp_wall_dist);
             int draw_start = -line_height / 2 + SCREEN_HEIGHT / 2;

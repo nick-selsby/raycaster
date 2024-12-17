@@ -17,11 +17,14 @@ struct Line {
 	Vector2 pos1;
 	Vector2 pos2;
 	RGB color;
+
+	Vector2 get_normal();
 };
 
 struct RayCastResult {
 	bool hit;
 	Vector2 hit_position;
+	Vector2 normal;
 	const Line* line;
 	float distance;
 };
