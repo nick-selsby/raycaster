@@ -5,7 +5,7 @@ const int MAP_HEIGHT = 20;
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 
-const int RAY_EVERY_N_PIXELS = 10;
+const int RAY_EVERY_N_PIXELS = 1;
 
 const int worldMap[MAP_WIDTH][MAP_HEIGHT] = {
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
@@ -49,7 +49,7 @@ public:
         if (keys[SDL_SCANCODE_DOWN]) {
             if (worldMap[int(pos_x - dir_x * move_speed)][int(pos_y)] == 0) 
                 pos_x -= dir_x * move_speed;
-            if (worldMap[int(pos_x)][int(pos_y - dir_y * move_speed)] == 0) 
+            if (worldMap[int(pos_x)][int(pos_y - dir_y * move_speed)] == 0)
                 pos_y -= dir_y * move_speed;
         }
         if (keys[SDL_SCANCODE_RIGHT]) {
@@ -154,8 +154,12 @@ public:
                 uint8_t(b * 255.0f),        // b
                 255);                       // a
 
-            SDL_Rect current_rect = {x - RAY_EVERY_N_PIXELS / 2, draw_start, RAY_EVERY_N_PIXELS, draw_end - draw_start};
-            SDL_RenderFillRect(renderer, &current_rect);
+            if (RAY_EVERY_N_PIXELS >= 2) {
+                SDL_Rect current_rect = {x - RAY_EVERY_N_PIXELS / 2, draw_start, RAY_EVERY_N_PIXELS, draw_end - draw_start};
+                SDL_RenderFillRect(renderer, &current_rect);
+            } else {
+                SDL_RenderDrawLine(renderer, x, draw_start, x, draw_end);
+            }
         }
     }
     
