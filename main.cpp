@@ -5,6 +5,8 @@ const int MAP_HEIGHT = 20;
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 
+const int RAY_EVERY_N_PIXELS = 10;
+
 const int worldMap[MAP_WIDTH][MAP_HEIGHT] = {
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
     {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -152,7 +154,8 @@ public:
                 uint8_t(b * 255.0f),        // b
                 255);                       // a
 
-            SDL_RenderDrawLine(renderer, x, draw_start, x, draw_end);
+            SDL_Rect current_rect = {x - RAY_EVERY_N_PIXELS / 2, draw_start, RAY_EVERY_N_PIXELS, draw_end - draw_start};
+            SDL_RenderFillRect(renderer, &current_rect);
         }
     }
     
@@ -247,7 +250,7 @@ int main(int argc, char* argv[]) {
         SDL_RenderClear(renderer);
 
         draw_ceiling_and_floor(renderer);
-        for(int x = 0; x < SCREEN_WIDTH; x++) {
+        for(int x = 0; x < SCREEN_WIDTH; x = x + RAY_EVERY_N_PIXELS) {
             player.cast_ray(renderer, x);
         }
 
