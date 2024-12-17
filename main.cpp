@@ -1,11 +1,15 @@
 #include "main.h"
 
+#include "map.hpp"
+
+#include <numbers>
+
 const int MAP_WIDTH = 20;
 const int MAP_HEIGHT = 20;
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 
-const int RAY_EVERY_N_PIXELS = 10;
+const int RAY_EVERY_N_PIXELS = 2;
 
 const int worldMap[MAP_WIDTH][MAP_HEIGHT] = {
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
@@ -30,29 +34,32 @@ const int worldMap[MAP_WIDTH][MAP_HEIGHT] = {
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
+Map map;
+
 class Player {
     double pos_x, pos_y;
     double dir_x, dir_y;
     double plane_x, plane_y;
-    
+
 public:
     Player(double x, double y, double dirX, double dirY, double planeX, double planeY)
-        : pos_x(x), pos_y(y), dir_x(dirX), dir_y(dirY), plane_x(planeX), plane_y(planeY) {}
+        : pos_x(x), pos_y(y), dir_x(dirX), dir_y(dirY), plane_x(planeX), plane_y(planeY)
+    {}
 
     void handle_input(const Uint8* keys, double move_speed, double rot_speed) {
-        if (keys[SDL_SCANCODE_UP]) {
+        if (keys[SDL_SCANCODE_UP] || keys[SDL_SCANCODE_W]) {
             if (worldMap[int(pos_x + dir_x * move_speed)][int(pos_y)] == 0) 
                 pos_x += dir_x * move_speed;
             if (worldMap[int(pos_x)][int(pos_y + dir_y * move_speed)] == 0) 
                 pos_y += dir_y * move_speed;
         }
-        if (keys[SDL_SCANCODE_DOWN]) {
+        if (keys[SDL_SCANCODE_DOWN] || keys[SDL_SCANCODE_S]) {
             if (worldMap[int(pos_x - dir_x * move_speed)][int(pos_y)] == 0) 
                 pos_x -= dir_x * move_speed;
             if (worldMap[int(pos_x)][int(pos_y - dir_y * move_speed)] == 0) 
                 pos_y -= dir_y * move_speed;
         }
-        if (keys[SDL_SCANCODE_RIGHT]) {
+        if (keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_D]) {
             double old_dir_x = dir_x;
             dir_x = dir_x * cos(rot_speed) - dir_y * sin(rot_speed);
             dir_y = old_dir_x * sin(rot_speed) + dir_y * cos(rot_speed);
@@ -60,7 +67,7 @@ public:
             plane_x = plane_x * cos(rot_speed) - plane_y * sin(rot_speed);
             plane_y = old_plane_x * sin(rot_speed) + plane_y * cos(rot_speed);
         }
-        if (keys[SDL_SCANCODE_LEFT]) {
+        if (keys[SDL_SCANCODE_LEFT] || keys[SDL_SCANCODE_A]) {
             double old_dir_x = dir_x;
             dir_x = dir_x * cos(-rot_speed) - dir_y * sin(-rot_speed);
             dir_y = old_dir_x * sin(-rot_speed) + dir_y * cos(-rot_speed);
@@ -74,68 +81,22 @@ public:
         double camera_x = 2 * x / double(SCREEN_WIDTH) - 1;
         double ray_dir_x = dir_x + plane_x * camera_x;
         double ray_dir_y = dir_y + plane_y * camera_x;
+        
+        RayCastResult result;
+        map.cast(Vector2(pos_y, pos_x), Vector2(-ray_dir_y, -ray_dir_x), result);
 
-        int map_x = int(pos_x);
-        int map_y = int(pos_y);
-
-        if (map_x < 0 || map_x >= MAP_WIDTH || map_y < 0 || map_y >= MAP_HEIGHT) {
-            return;
-        }
-
-        double delta_dist_x = (ray_dir_x == 0) ? 1e30 : std::abs(1 / ray_dir_x);
-        double delta_dist_y = (ray_dir_y == 0) ? 1e30 : std::abs(1 / ray_dir_y);
-        double side_dist_x, side_dist_y;
-        int step_x, step_y;
-        int hit = 0;
-        int side;
-
-        if (ray_dir_x < 0) {
-            step_x = -1;
-            side_dist_x = (pos_x - map_x) * delta_dist_x;
-        } else {
-            step_x = 1;
-            side_dist_x = (map_x + 1.0 - pos_x) * delta_dist_x;
-        }
-        if (ray_dir_y < 0) {
-            step_y = -1;
-            side_dist_y = (pos_y - map_y) * delta_dist_y;
-        } else {
-            step_y = 1;
-            side_dist_y = (map_y + 1.0 - pos_y) * delta_dist_y;
-        }
-
-        while (hit == 0) {
-            if (side_dist_x < side_dist_y) {
-                side_dist_x += delta_dist_x;
-                map_x += step_x;
-                side = 0;
-            } else {
-                side_dist_y += delta_dist_y;
-                map_y += step_y;
-                side = 1;
-            }
-            
-            if (map_x < 0 || map_x >= MAP_WIDTH || map_y < 0 || map_y >= MAP_HEIGHT) {
-                break;
-            }
-            
-            if (worldMap[map_x][map_y] > 0) hit = 1;
-        }
-
-        if (hit == 1) {
-            double perp_wall_dist;
-            if (side == 0) perp_wall_dist = (map_x - pos_x + (1 - step_x) / 2) / ray_dir_x;
-            else perp_wall_dist = (map_y - pos_y + (1 - step_y) / 2) / ray_dir_y;
+        if (result.hit == true) {
+            double perp_wall_dist = result.distance;
 
             int line_height = (int)(SCREEN_HEIGHT / perp_wall_dist);
             int draw_start = -line_height / 2 + SCREEN_HEIGHT / 2;
-            if(draw_start < 0) draw_start = 0;
+            if (draw_start < 0) draw_start = 0;
             int draw_end = line_height / 2 + SCREEN_HEIGHT / 2;
-            if(draw_end >= SCREEN_HEIGHT) draw_end = SCREEN_HEIGHT - 1;
+            if (draw_end >= SCREEN_HEIGHT) draw_end = SCREEN_HEIGHT - 1;
 
-            float r = side == 1 ? 1.0f : 0.0f;
-            float g = side == 1 ? 0.0f : 1.0f;
-            float b = 0;
+            float r = result.line->color.r;
+            float g = result.line->color.g;
+            float b = result.line->color.b;
 
             float brightness = 1.0f;
 
@@ -148,7 +109,7 @@ public:
             r *= brightness; g *= brightness; b *= brightness;
 
             // draw walls
-            SDL_SetRenderDrawColor(renderer, 
+            SDL_SetRenderDrawColor(renderer,
                 uint8_t(r * 255.0f),        // r
                 uint8_t(g * 255.0f),        // g
                 uint8_t(b * 255.0f),        // b
@@ -211,6 +172,20 @@ bool init(SDL_Window** window, SDL_Renderer** renderer) {
         return false;
     }
 
+    map.add_tiles(MAP_WIDTH, MAP_HEIGHT, &worldMap[0][0]);
+    map.add_line_segment({ 2.0f, 1.0f }, { 1.0f, 2.0f }, AQUA_BLUE);
+    const int POINTS = 4;
+    for (int i = 0; i < POINTS; i++) {
+        float cx = 13.0f;
+        float cy = 13.0f;
+        float r = 1.0f;
+        float p1x = cx + r * std::cos((i / (float)POINTS) * std::numbers::pi * 2);
+        float p1y = cy + r * std::sin((i / (float)POINTS) * std::numbers::pi * 2);
+        float p2x = cx + r * std::cos(((i + 1) / (float)POINTS) * std::numbers::pi * 2);
+        float p2y = cy + r * std::sin(((i + 1) / (float)POINTS) * std::numbers::pi * 2);
+        map.add_line_segment({ p1x, p1y }, { p2x, p2y }, WHITE);
+    }
+
     return true;
 }
 
@@ -222,7 +197,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    Player player = {1.5, 1.5, 1.0, 0.0, 0.0, 0.66};
+    Player player = {2.5, 1.5, 1.0, 0.0, 0.0, 0.66};
     Uint64 last_time = SDL_GetTicks();
 
     const int FPS = 60;
